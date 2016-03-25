@@ -27,6 +27,7 @@ namespace AssemblyTypeLoader
         }
     }
 
+#if NET451
     public class SerializableTypeSelector : ITypeSelector
     {
         public bool ShouldKeepType(Type type)
@@ -34,6 +35,7 @@ namespace AssemblyTypeLoader
             return type.GetTypeInfo().HasCustomAttribute<SerializableAttribute>();
         }
     }
+#endif
 
     public class AllTypesTypeSelector : ITypeSelector
     {
