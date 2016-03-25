@@ -56,7 +56,8 @@ namespace AssemblyTypeLoader
         }
     }
 
-    public class SerializablePropertySelector : IPropertySelector
+#if NET451
+	public class SerializablePropertySelector : IPropertySelector
     {
         public ePropertyConversionType GetPropertyConversionType(PropertyInfo propertyInfo)
         {
@@ -73,8 +74,9 @@ namespace AssemblyTypeLoader
             return ePropertyConversionType.Optional;
         }
     }
+#endif
 
-    public class AllPropertySelector : IPropertySelector
+	public class AllPropertySelector : IPropertySelector
     {
         public ePropertyConversionType InclusionValue { get; }
 
