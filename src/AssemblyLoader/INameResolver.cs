@@ -6,12 +6,12 @@ using Newtonsoft.Json;
 
 namespace AssemblyLoader
 {
-    interface INameResolver
+    public interface INameResolver
     {
         string GetName(MemberInfo info);
     }
 
-    interface IPropertyNameResolver : INameResolver
+    public interface IPropertyNameResolver : INameResolver
     {
         string GetName(PropertyInfo propertyInfo);
     }
