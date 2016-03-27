@@ -29,6 +29,6 @@
 		}
 	},
 	"dependencies": {
-		"Newtonsoft.Json": "8.0.3"
+		"Newtonsoft.Json": "6.0.8"
 	}
 }
