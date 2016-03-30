@@ -1,5 +1,5 @@
 {
-	"version": "0.8.2-beta",
+	"version": "0.8.3-beta",
 	"description": "Abstraction for selecting types from an assembly.",
 	"authors": [ "Michael Pavlak" ],
 	"tags": [ "" ],

@@ -36,6 +36,22 @@ namespace AssemblyTypeLoader
     }
 #endif
 
+    public class ClassTypeSelector : ITypeSelector
+    {
+        public bool ShouldKeepType(Type type)
+        {
+            return type.GetTypeInfo().IsClass;
+        }
+    }
+
+    public class EnumTypeSelector : ITypeSelector
+    {
+        public bool ShouldKeepType(Type type)
+        {
+            return type.GetTypeInfo().IsEnum;
+        }
+    }
+
     public class AllTypesTypeSelector : ITypeSelector
     {
         public bool ShouldKeepType(Type type)
