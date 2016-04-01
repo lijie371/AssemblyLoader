@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace AssemblyTypeLoader
 {
@@ -12,6 +13,13 @@ namespace AssemblyTypeLoader
 
     public class TypeLoader : ITypeLoader
     {
+        protected readonly IList<ITypeSelector> TypeSelectors;
+
+        public TypeLoader(IEnumerable<ITypeSelector> typeSelectors = null)
+        {
+            this.TypeSelectors = new List<ITypeSelector>(typeSelectors ?? Enumerable.Empty<ITypeSelector>());
+        }
+         
         public Type[] FetchTypes(Assembly assembly, params ITypeSelector[] selectors)
         {
             return this.FetchTypes(assembly)
@@ -21,24 +29,20 @@ namespace AssemblyTypeLoader
 
         protected virtual IEnumerable<Type> FetchTypes(Assembly assembly)
         {
-            return assembly.GetTypes();
+            return assembly.GetTypes()
+                           .Where(x => !x.GetTypeInfo().HasCustomAttribute<CompilerGeneratedAttribute>())
+                           .Where(x => this.TypeSelectors.Count == 0 || this.TypeSelectors.Any(y => y.ShouldKeepType(x)));
         }
     }
 
     public class DtoTypeLoader : TypeLoader
     {
-        protected override IEnumerable<Type> FetchTypes(Assembly assembly)
-        {
-            return assembly.GetTypes().Where(x => x.GetTypeInfo().IsClass || x.GetTypeInfo().IsEnum || (x.GetTypeInfo().IsValueType && !x.GetTypeInfo().IsPrimitive));
-        }
+        public DtoTypeLoader() : base(new ITypeSelector[] { new ClassTypeSelector(), new EnumTypeSelector(), new ValueTypeSelector() }) { }
     }
 
     public class ServiceTypeLoader : TypeLoader
     {
-        protected override IEnumerable<Type> FetchTypes(Assembly assembly)
-        {
-            return assembly.GetTypes().Where(x => x.GetTypeInfo().IsInterface);
-        }
+        public ServiceTypeLoader(): base(new ITypeSelector[] { new InterfaceTypeSelector() }) { }
     }
 
     public class ServiceWalkerTypeLoader : TypeLoader
@@ -46,7 +50,7 @@ namespace AssemblyTypeLoader
         protected override IEnumerable<Type> FetchTypes(Assembly assembly)
         {
             HashSet<Type> exportTypes = new HashSet<Type>();
-            var interfaceTypes = assembly.GetTypes().Where(x => x.GetTypeInfo().IsInterface && x.GetRuntimeMethods().Any(y => !y.IsSpecialName));
+            var interfaceTypes = base.FetchTypes(assembly).Where(x => x.GetTypeInfo().IsInterface && x.GetRuntimeMethods().Any(y => !y.IsSpecialName));
             foreach (var t in interfaceTypes)
             {
                 exportTypes.Add(t);

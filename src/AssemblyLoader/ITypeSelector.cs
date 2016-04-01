@@ -52,6 +52,23 @@ namespace AssemblyTypeLoader
         }
     }
 
+    public class InterfaceTypeSelector : ITypeSelector
+    {
+        public bool ShouldKeepType(Type type)
+        {
+            return type.GetTypeInfo().IsInterface;
+        }
+    }
+
+    public class ValueTypeSelector : ITypeSelector
+    {
+        public bool ShouldKeepType(Type type)
+        {
+            TypeInfo info = type.GetTypeInfo();
+            return info.IsValueType && !info.IsPrimitive;
+        }
+    }
+
     public class AllTypesTypeSelector : ITypeSelector
     {
         public bool ShouldKeepType(Type type)
