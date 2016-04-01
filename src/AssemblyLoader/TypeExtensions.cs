@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace AssemblyTypeLoader
 {
@@ -15,6 +18,11 @@ namespace AssemblyTypeLoader
         {
             attribute = memberInfo.GetCustomAttribute<T>();
             return attribute != null;
+        }
+
+        public static IEnumerable<Type> RemoveClosureTypes(this IEnumerable<Type> types)
+        {
+            return types.Where(x => !x.GetTypeInfo().HasCustomAttribute<CompilerGeneratedAttribute>());
         }
     }
 }

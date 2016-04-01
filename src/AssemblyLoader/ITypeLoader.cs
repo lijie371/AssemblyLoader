@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace AssemblyTypeLoader
 {
     public interface ITypeLoader
     {
-        Type[] FetchTypes(Assembly assembly, params ITypeSelector[] selectors);
+        Type[] FetchTypes(Assembly assembly);
     }
 
     public class TypeLoader : ITypeLoader
@@ -19,19 +18,13 @@ namespace AssemblyTypeLoader
         {
             this.TypeSelectors = new List<ITypeSelector>(typeSelectors ?? Enumerable.Empty<ITypeSelector>());
         }
-         
-        public Type[] FetchTypes(Assembly assembly, params ITypeSelector[] selectors)
-        {
-            return this.FetchTypes(assembly)
-                       .Where(x => selectors.Any(y => y.ShouldKeepType(x)))
-                       .ToArray();
-        }
 
-        protected virtual IEnumerable<Type> FetchTypes(Assembly assembly)
+        public virtual Type[] FetchTypes(Assembly assembly)
         {
             return assembly.GetTypes()
-                           .Where(x => !x.GetTypeInfo().HasCustomAttribute<CompilerGeneratedAttribute>())
-                           .Where(x => this.TypeSelectors.Count == 0 || this.TypeSelectors.Any(y => y.ShouldKeepType(x)));
+                           .RemoveClosureTypes()
+                           .Where(x => this.TypeSelectors.Count == 0 || this.TypeSelectors.Any(y => y.ShouldKeepType(x)))
+                           .ToArray();
         }
     }
 
@@ -47,11 +40,12 @@ namespace AssemblyTypeLoader
 
     public class ServiceWalkerTypeLoader : TypeLoader
     {
-        protected override IEnumerable<Type> FetchTypes(Assembly assembly)
+        public ServiceWalkerTypeLoader() : base(new ITypeSelector[] { new InterfaceTypeSelector() }) { }
+
+        public override Type[] FetchTypes(Assembly assembly)
         {
             HashSet<Type> exportTypes = new HashSet<Type>();
-            var interfaceTypes = base.FetchTypes(assembly).Where(x => x.GetTypeInfo().IsInterface && x.GetRuntimeMethods().Any(y => !y.IsSpecialName));
-            foreach (var t in interfaceTypes)
+            foreach (var t in base.FetchTypes(assembly).Where(x => x.GetRuntimeMethods().Any(y => !y.IsSpecialName)))
             {
                 exportTypes.Add(t);
                 foreach (var method in t.GetRuntimeMethods().Where(y => !y.IsSpecialName))
@@ -63,7 +57,7 @@ namespace AssemblyTypeLoader
                     }
                 }
             }
-            return exportTypes;
+            return exportTypes.ToArray();
         }
     }
 }
